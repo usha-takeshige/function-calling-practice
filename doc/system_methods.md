@@ -51,7 +51,7 @@ TypeScriptのインターフェースとしても利用可能なデータ形式�
   - **異常系**: 読み込みエラー時は `FileReadError` を reject する。
 - `downloadCSV(csvContent: string, filename: string): void`
   - **仕様**: Blobを作成し、アンカータグを生成・クリックすることでブラウザにダウンロードを指示する。
-  - **異常系**: `csvContent` が空の場合は何も実行しない（または警告ログを出力）。
+  - **前提**: エクスポートボタンはデータが空の場合にdisabledになるため、この関数が呼び出される時点で `csvContent` が空になることは想定しない。
 
 ---
 
@@ -72,6 +72,8 @@ Reactの状態管理とロジックを繋ぐ層。UIコンポーネントから�
 - **Derived State (memoized)**:
   - `processedDataset`: `Dataset`
     - `rawDataset` に対し、列フィルタ -> 行フィルタ -> ソート の順で加工を適用した結果。画面表示の実体。
+  - `isExportDisabled`: `boolean`
+    - `processedDataset.rows.length === 0` の場合に `true`。エクスポートボタンの `disabled` 属性に連動させる。
 
 - **Actions (Methods)**:
   - `loadData(dataset: Dataset)`: データを初期化し、全列を表示状態にする。
@@ -79,7 +81,7 @@ Reactの状態管理とロジックを繋ぐ層。UIコンポーネントから�
   - `toggleSort(columnName: string)`:
     - 指定列が現在のソート対象でなければ「昇順」に設定。
     - 現在「昇順」なら「降順」に切り替え。
-    - 現在「降順」ならソート解除（null）にする。
+    - 現在「降順」なら「昇順」に戻す（2状態トグル、ソート解除は行わない）。
   - `toggleColumnVisibility(columnName: string)`: 指定列の表示/非表示を反転させる。少なくとも1列は表示状態を維持する（全非表示は防ぐ等のガードロジックを入れるか検討）。
 
 ---
