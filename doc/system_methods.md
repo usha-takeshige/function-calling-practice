@@ -1,90 +1,69 @@
-# システムメソッド定義
+# システム設計 (React Architecture)
 
-`doc/features.md` の機能要件を実現するための、主要なシステムメソッド（関数・処理単位）を定義します。
+`doc/features.md` の機能要件を実現するための、Reactアプリケーション設計を定義します。ロジック（Utility）とUI（Components）を分離し、保守性を高めます。
 
-## 1. データ構造定義 (Memo)
+## 1. データ構造定義 (Type Definitions)
 
-処理の中心となるデータ形式の定義です。
+TypeScriptのインターフェースとしても利用可能なデータ形式定義。
 
-- **Dataset**: `header` (列名の配列) と `rows` (データ行の配列) を持つオブジェクト。
-- **SortOrder**: `'asc'` (昇順) または `'desc'` (降順)。
+- **Dataset**: `{ headers: string[], rows: string[][] }`
+  - CSVデータそのもの。
+- **Config**: `{ sort: SortOrder, filter: string, visibleColumns: string[] }`
+  - ユーザーの操作状態。
+- **SortOrder**: `{ column: string, direction: 'asc' | 'desc' } | null`
 
 ---
 
-## 2. モジュール別メソッド一覧
+## 2. ユーティリティ (Logic Layer)
 
-### 2.1 FileHandler (ファイル入出力)
+Reactに依存しない純粋な関数群。`src/utils/` などに配置します。
 
-ファイルの読み込みと保存を担当します。
+### 2.1 CSVParser
+- `parse(csvString: string): Dataset`
+  - テキストをオブジェクトに変換。
+- `stringify(dataset: Dataset): string`
+  - オブジェクトをCSVテキストに変換。
 
-#### `loadCSVFile(file)`
-- **概要**: ユーザーがアップロードしたファイルを読み込み、テキストデータを取得する。
-- **入力**: 
-  - `file`: File オブジェクト (ブラウザのFile API由来)
-- **出力**: 
-  - `string`: CSV形式のテキストデータ
-- **例外**: ファイル形式が不正な場合、読み込みに失敗した場合にエラーを返す。
+### 2.2 DataProcessor
+- `filterRows(rows: string[][], keyword: string): string[][]`
+  - 行データの絞り込み。
+- `sortRows(rows: string[][], columnIndex: number, order: 'asc' | 'desc'): string[][]`
+  - 行データのソート。
+- `filterColumns(headers: string[], rows: string[][], targetColumns: string[]): Dataset`
+  - 表示列のみを抽出した新しいデータセットの生成（エクスポート用）。
 
-#### `downloadCSV(csvContent, filename)`
-- **概要**: 生成されたCSV文字列をファイルとしてブラウザでダウンロードさせる。
-- **入力**: 
-  - `csvContent`: string (CSVデータ)
-  - `filename`: string (保存ファイル名)
-- **出力**: なし (ブラウザのダウンロード動作を実行)
+---
 
-### 2.2 CSVParser (データ解析)
+## 3. React コンポーネント構成 (UI Layer)
 
-テキストデータと内部データ構造の相互変換を担当します。
+### 3.1 コンポーネント階層
 
-#### `parse(csvString)`
-- **概要**: CSV文字列を解析し、操作可能なデータ構造に変換する。
-- **入力**: 
-  - `csvString`: string
-- **出力**: 
-  - `Dataset`: ヘッダーと行データを持つオブジェクト
+- **App (Main Container)**
+  - 全体の状態管理 (`dataset`, `config`) を行う。
+  - **FileUpload**: ファイル入力エリア（初期表示）。
+  - **Dashboard**: データ読み込み後のメイン画面。
+    - **ControlPanel**: 操作メニュー。
+      - `ColumnSelector`: 列の表示切替。
+      - `SearchInput`: フィルタ入力。
+      - `ExportButton`: CSVダウンロードボタン。
+    - **DataTable**: データ表示テーブル。
+      - ソートヘッダーのクリックイベントなどを処理。
 
-#### `stringify(dataset)`
-- **概要**: 表示中のデータ構造をCSV文字列に変換する。
-- **入力**: 
-  - `dataset`: Dataset (現在の表示用データ)
-- **出力**: 
-  - `string`: CSV形式のテキストデータ
+### 3.2 状態管理 (State Management)
 
-### 2.3 DataProcessor (データ加工)
+`App` またはカスタムフック (`useCSVData`) で管理する主要なState。
 
-データのフィルタリング、ソート、整形などのロジックを担当します。
+| State名            | 型                | 説明                                                                                                              |
+| :----------------- | :---------------- | :---------------------------------------------------------------------------------------------------------------- |
+| `rawDataset`       | `Dataset \| null` | アップロードされたオリジナルの全データ。                                                                          |
+| `filterText`       | `string`          | 検索ボックスの入力値。                                                                                            |
+| `sortOrder`        | `SortOrder`       | 現在のソート設定。                                                                                                |
+| `visibleColumns`   | `Set<string>`     | 現在表示中の列名の集合。                                                                                          |
+| `processedDataset` | `Dataset`         | **Derived State (派生状態)**。`rawDataset` に対してフィルタ・ソート・列選択を適用した結果。`useMemo` で計算する。 |
 
-#### `filterByKeyword(dataset, keyword)`
-- **概要**: キーワードに一致する行のみを抽出する。
-- **入力**: 
-  - `dataset`: Dataset
-  - `keyword`: string (検索語句)
-- **出力**: 
-  - `Dataset`: 条件に一致した行のみを含む新しいデータセット
+### 3.3 インタラクション (Event flow)
 
-#### `sortByColumn(dataset, columnName, order)`
-- **概要**: 指定された列を基準に行を並び替える。
-- **入力**: 
-  - `dataset`: Dataset
-  - `columnName`: string (ソート基準の列名)
-  - `order`: SortOrder ('asc' | 'desc')
-- **出力**: 
-  - `Dataset`: 並び替え済みの新しいデータセット
-
-#### `selectColumns(dataset, targetColumns)`
-- **概要**: 指定された列のみを抽出する（表示列の制御）。
-- **入力**: 
-  - `dataset`: Dataset
-  - `targetColumns`: string[] (表示対象の列名リスト)
-- **出力**: 
-  - `Dataset`: 指定列のみを含む新しいデータセット
-
-### 2.4 ViewManager (画面表示管理・状態管理)
-
-UIの状態とデータ処理の連携を担当（概念的な機能）。
-
-#### `updateView(state)`
-- **概要**: 現在のアプリケーション状態（元データ、フィルタ条件、ソート条件、表示列設定）に基づき、DataProcessorのメソッドを組み合わせて最終的な表示データを作成し、UIを更新する。
-- **入力**: 
-  - `state`: 現在の全設定状態
-- **出力**: なし (DOMの更新)
+1. **Upload**: `FileUpload` でファイルを受け取り、`parse` して `rawDataset` にセット。
+2. **Filter**: `SearchInput` の変更を `filterText` に反映。`processedDataset` が自動再計算される。
+3. **Sort**: `DataTable` ヘッダーのクリックで `sortOrder` を更新。`processedDataset` が自動再計算される。
+4. **Export**: `ExportButton` クリック時、`processedDataset` を `stringify` してダウンロードさせる。
