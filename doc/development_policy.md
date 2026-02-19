@@ -77,31 +77,67 @@ UI Layer         (Components)                 ← Propsを受け取るだけのP
 ### 3.2 テストケース チェックリスト
 
 #### CSVParser
-- [ ] 正常なCSV文字列を`Dataset`に変換できる
-- [ ] 空文字列を受け取った場合、`{ headers: [], rows: [] }`を返す
-- [ ] 列数が不揃いのCSVで`ParseError`をスローする
-- [ ] `Dataset`をCSV文字列に変換できる（ヘッダー行を含む）
-- [ ] 空の`Dataset`を受け取った場合、空文字列を返す
+- [x] 正常なCSV文字列を`Dataset`に変換できる
+- [x] 空文字列を受け取った場合、`{ headers: [], rows: [] }`を返す
+- [x] 列数が不揃いのCSVで`ParseError`をスローする
+- [x] `Dataset`をCSV文字列に変換できる（ヘッダー行を含む）
+- [x] 空の`Dataset`を受け取った場合、空文字列を返す
 
 #### DataProcessor
-- [ ] `filterRows`: キーワードが空の場合、全行を返す
-- [ ] `filterRows`: 部分一致で行を絞り込める（大文字小文字を区別しない）
-- [ ] `sortRows`: 数値として解釈できる列を数値順でソートできる
-- [ ] `sortRows`: 文字列列を辞書順でソートできる（昇順/降順）
-- [ ] `filterColumns`: 指定した列名のみを含む`Dataset`を返す
+- [x] `filterRows`: キーワードが空の場合、全行を返す
+- [x] `filterRows`: 部分一致で行を絞り込める（大文字小文字を区別しない）
+- [x] `filterRows`: 複数行が一致する場合、全て返す（大文字小文字を区別しない）
+- [x] `filterRows`: 一致する行がない場合、空配列を返す
+- [x] `sortRows`: 文字列列を辞書順（昇順）でソートできる
+- [x] `sortRows`: 文字列列を辞書順（降順）でソートできる
+- [x] `sortRows`: 数値として解釈できる列を数値順（昇順）でソートできる
+- [x] `sortRows`: 数値として解釈できる列を数値順（降順）でソートできる
+- [x] `filterColumns`: 指定した列名のみを含む`Dataset`を返す
+- [x] `filterColumns`: 全列を指定した場合、元の`Dataset`と同じ内容を返す
+- [x] `filterColumns`: 空の`visibleColumns`を指定した場合、空の`Dataset`を返す
 
 #### useTableData フック
-- [ ] `loadData`でデータが初期化され、全列が`visibleColumns`に追加される
-- [ ] `setFilter`で`filterText`が更新され、`processedDataset`が再計算される
-- [ ] `toggleSort`: 未ソート列→昇順、昇順→降順、降順→昇順 の順で切り替わる
-- [ ] `toggleColumnVisibility`で列の表示/非表示が反転する
-- [ ] `processedDataset`は「列フィルタ → 行フィルタ → ソート」の順で適用される
-- [ ] データが0件のとき`isExportDisabled`が`true`になる
+- [x] `loadData`でデータが初期化され、全列が`visibleColumns`に追加される
+- [x] `setFilter`で`filterText`が更新され、`processedDataset`が再計算される
+- [x] `toggleSort`: 未ソート列を指定すると昇順になる
+- [x] `toggleSort`: 昇順の列を再度指定すると降順になる
+- [x] `toggleSort`: 降順の列を再度指定すると昇順に戻る（2状態トグル）
+- [x] `toggleColumnVisibility`で列の表示/非表示が反転する
+- [x] `processedDataset`は「列フィルタ → 行フィルタ → ソート」の順で適用される
+- [x] 初期状態（データなし）では`isExportDisabled`が`true`になる
+- [x] データが存在する場合は`isExportDisabled`が`false`になる
+- [x] フィルタリングで0行になった場合は`isExportDisabled`が`true`になる
 
 #### FileIO
-- [ ] `readTextFromFile`: ファイルを正常に読み込めた場合、テキストを返す
-- [ ] `readTextFromFile`: 読み込みエラー時に`FileReadError`でrejectされる
-- [ ] `downloadCSV`: `Blob`とアンカータグによるダウンロードが発火する
+- [x] `readTextFromFile`: ファイルを正常に読み込んだ場合、テキスト文字列を返す
+- [x] `readTextFromFile`: 読み込みエラー時に`FileReadError`でrejectされる
+- [x] `downloadCSV`: `Blob`とアンカータグによるダウンロードが発火する
+
+#### FileUpload コンポーネント
+- [ ] ドラッグ＆ドロップエリアが描画される
+- [ ] CSV以外のファイルをドロップするとエラーメッセージが表示される
+- [ ] CSVファイルをドロップすると`onFileSelect`が呼ばれる
+
+#### ControlPanel コンポーネント
+- [ ] 列名のチェックボックスが全列分描画される
+- [ ] チェックボックスをOFFにすると`onToggleColumn`が呼ばれる
+- [ ] 検索ボックスに入力すると`onFilterChange`が呼ばれる
+- [ ] `isExportDisabled`が`true`のときエクスポートボタンが`disabled`になる
+- [ ] `isExportDisabled`が`false`のときエクスポートボタンをクリックすると`onExport`が呼ばれる
+
+#### DataTable コンポーネント
+- [ ] ヘッダー行とデータ行が正しく描画される
+- [ ] 列ヘッダーをクリックすると`onHeaderClick`が呼ばれる
+- [ ] 昇順ソート中の列ヘッダーに昇順アイコンが表示される
+- [ ] 降順ソート中の列ヘッダーに降順アイコンが表示される
+- [ ] データが空のとき行が描画されない
+
+#### App（統合テスト）
+- [ ] 初期表示ではドラッグ＆ドロップエリアのみが表示される
+- [ ] CSVファイルをドロップするとデータテーブルが表示される
+- [ ] フィルタ入力後にテーブルの表示行が絞り込まれる
+- [ ] 列チェックボックスをOFFにすると該当列がテーブルから消える
+- [ ] エクスポートボタンクリックで`downloadCSV`が呼ばれる
 
 ---
 
