@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { readTextFromFile, downloadCSV } from '../../infrastructure/fileIO'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { FileReadError, readTextFromFile, downloadCSV } from '../../infrastructure/fileIO'
 
 describe('FileIO', () => {
     describe('readTextFromFile()', () => {
@@ -12,10 +12,9 @@ describe('FileIO', () => {
         })
 
         it('読み込みエラー時にFileReadErrorでrejectされる', async () => {
-            // FileReaderを強制的にエラー状態にするモック
-            const originalFileReader = globalThis.FileReader
+            // FileReaderのonerrorを強制的に発火させるモック
             const mockFileReader = {
-                readAsText: vi.fn(function (this: { onerror: (() => void) | null }) {
+                readAsText: vi.fn(function (this: typeof mockFileReader) {
                     setTimeout(() => this.onerror?.(), 0)
                 }),
                 onload: null as (() => void) | null,
@@ -27,27 +26,31 @@ describe('FileIO', () => {
             )
 
             const file = new File(['content'], 'test.csv')
-            await expect(readTextFromFile(file)).rejects.toThrow('FileReadError')
+            await expect(readTextFromFile(file)).rejects.toThrowError(FileReadError)
 
-            globalThis.FileReader = originalFileReader
+            vi.restoreAllMocks()
         })
     })
 
     describe('downloadCSV()', () => {
         beforeEach(() => {
-            // URL.createObjectURL と revokeObjectURL をモック化
-            vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url')
-            vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => { })
-            // document.body.append と anchor click をモック化
+            // jsdom環境にはURL.createObjectURLが存在しないため、グローバルに定義する
+            globalThis.URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-url')
+            globalThis.URL.revokeObjectURL = vi.fn()
             vi.spyOn(document.body, 'appendChild').mockImplementation((el) => el)
             vi.spyOn(document.body, 'removeChild').mockImplementation((el) => el)
         })
 
+        afterEach(() => {
+            vi.restoreAllMocks()
+        })
+
         it('Blobとアンカータグによるダウンロードが発火する', () => {
             const mockClick = vi.fn()
-            vi.spyOn(document, 'createElement').mockReturnValue(
-                Object.assign(document.createElement('a'), { click: mockClick }),
-            )
+            const mockAnchor = Object.assign(document.createElement('a'), {
+                click: mockClick,
+            })
+            vi.spyOn(document, 'createElement').mockReturnValue(mockAnchor)
 
             downloadCSV('name,age\nAlice,30', 'output.csv')
 
