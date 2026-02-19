@@ -30,4 +30,9 @@ describe('FileUpload', () => {
         expect(onFileSelect).toHaveBeenCalledOnce()
         expect(onFileSelect).toHaveBeenCalledWith(file)
     })
+
+    // --- 次イテレーション ---
+    it.todo('dragover イベントでドロップ受け入れ可能なビジュアルフィードバックが表示される')
+    it.todo('dragleave イベントでビジュアルフィードバックが解除される')
+    it.todo('エラー表示後に正しいCSVをドロップするとエラーメッセージが消える')
 })

@@ -74,4 +74,11 @@ describe('App (Integration)', () => {
 
         expect(URL.createObjectURL).toHaveBeenCalledOnce()
     })
+
+    // --- 次イテレーション ---
+    it.todo('列ヘッダークリックで昇順ソートされる')
+    it.todo('再クリックで降順ソートに切り替わる')
+    it.todo('不正なCSVファイルをドロップするとエラーメッセージが表示される')
+    it.todo('エクスポート時のファイル名がアップロードしたファイルと同じになる')
+    it.todo('別のCSVをドロップすると前のデータが上書きされる')
 })

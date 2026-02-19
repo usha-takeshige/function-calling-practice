@@ -81,4 +81,9 @@ describe('DataTable', () => {
         const rows = screen.getAllByRole('row')
         expect(rows).toHaveLength(1)
     })
+
+    // --- 次イテレーション ---
+    it.todo('ソートされていない列ヘッダーにはaria-sort属性がない')
+    it.todo('Enterキーで列ヘッダーをクリックするとonHeaderClickが呼ばれる')
+    it.todo('行数が多い場合に件数を表示するフッターが描画される')
 })

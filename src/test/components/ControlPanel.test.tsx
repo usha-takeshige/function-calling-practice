@@ -83,4 +83,9 @@ describe('ControlPanel', () => {
         await userEvent.click(screen.getByRole('button', { name: /export/i }))
         expect(onExport).toHaveBeenCalledOnce()
     })
+
+    // --- 次イテレーション ---
+    it.todo('「全列を表示」ボタンをクリックするとすべての列が表示される')
+    it.todo('検索ボックスをクリアするとonFilterChangeが空文字列で呼ばれる')
+    it.todo('isVisibleがfalseの列のチェックボックスはOFF状態で描画される')
 })
