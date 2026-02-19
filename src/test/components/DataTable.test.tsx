@@ -83,7 +83,49 @@ describe('DataTable', () => {
     })
 
     // --- 次イテレーション ---
-    it.todo('ソートされていない列ヘッダーにはaria-sort属性がない')
-    it.todo('Enterキーで列ヘッダーをクリックするとonHeaderClickが呼ばれる')
-    it.todo('行数が多い場合に件数を表示するフッターが描画される')
+    it('ソートされていない列ヘッダーにはaria-sort属性がない', () => {
+        const sortOrder: SortOrder = { column: 'name', direction: 'asc' }
+        render(
+            <DataTable
+                dataset={dataset}
+                sortOrder={sortOrder}
+                onHeaderClick={vi.fn()}
+            />,
+        )
+        // 'age' 列はソート対象外なので aria-sort がないはず
+        const ageHeader = screen.getByRole('columnheader', { name: 'age' })
+        expect(ageHeader).not.toHaveAttribute('aria-sort')
+    })
+
+    it('Enterキーで列ヘッダーをクリックするとonHeaderClickが呼ばれる', async () => {
+        const onHeaderClick = vi.fn()
+        render(
+            <DataTable
+                dataset={dataset}
+                sortOrder={null}
+                onHeaderClick={onHeaderClick}
+            />,
+        )
+        const nameHeader = screen.getByRole('columnheader', { name: 'name' })
+        nameHeader.focus()
+        await userEvent.keyboard('[Enter]')
+
+        expect(onHeaderClick).toHaveBeenCalledWith('name')
+    })
+
+    it('行数が多い場合に件数を表示するフッターが描画される', () => {
+        const largeDataset: Dataset = {
+            headers: ['name'],
+            rows: Array.from({ length: 100 }, (_, i) => [`row${i}`]),
+        }
+        render(
+            <DataTable
+                dataset={largeDataset}
+                sortOrder={null}
+                onHeaderClick={vi.fn()}
+            />,
+        )
+        // tfoot または contentinfo ロールに行数が表示される
+        expect(screen.getByRole('contentinfo')).toHaveTextContent('100')
+    })
 })

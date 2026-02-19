@@ -85,7 +85,58 @@ describe('ControlPanel', () => {
     })
 
     // --- 次イテレーション ---
-    it.todo('「全列を表示」ボタンをクリックするとすべての列が表示される')
-    it.todo('検索ボックスをクリアするとonFilterChangeが空文字列で呼ばれる')
-    it.todo('isVisibleがfalseの列のチェックボックスはOFF状態で描画される')
+    it('「全列を表示」ボタンをクリックするとすべての列が表示される', async () => {
+        const onToggleColumn = vi.fn()
+        const hiddenColumns: ColumnConfig[] = [
+            { name: 'name', isVisible: false },
+            { name: 'age', isVisible: false },
+        ]
+        render(
+            <ControlPanel
+                columns={hiddenColumns}
+                isExportDisabled={true}
+                onToggleColumn={onToggleColumn}
+                onFilterChange={vi.fn()}
+                onExport={vi.fn()}
+            />,
+        )
+
+        await userEvent.click(screen.getByRole('button', { name: /全列を表示/i }))
+
+        expect(onToggleColumn).toHaveBeenCalledTimes(hiddenColumns.length)
+    })
+
+    it('検索ボックスをクリアするとonFilterChangeが空文字列で呼ばれる', async () => {
+        const onFilterChange = vi.fn()
+        render(
+            <ControlPanel
+                columns={columns}
+                isExportDisabled={false}
+                onToggleColumn={vi.fn()}
+                onFilterChange={onFilterChange}
+                onExport={vi.fn()}
+            />,
+        )
+        const searchbox = screen.getByRole('searchbox')
+        await userEvent.type(searchbox, 'Alice')
+        onFilterChange.mockClear()
+
+        await userEvent.clear(searchbox)
+
+        expect(onFilterChange).toHaveBeenCalledWith('')
+    })
+
+    it('isVisibleがfalseの列のチェックボックスはOFF状態で描画される', () => {
+        render(
+            <ControlPanel
+                columns={columns}
+                isExportDisabled={false}
+                onToggleColumn={vi.fn()}
+                onFilterChange={vi.fn()}
+                onExport={vi.fn()}
+            />,
+        )
+
+        expect(screen.getByRole('checkbox', { name: 'city' })).not.toBeChecked()
+    })
 })

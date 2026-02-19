@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { FileUpload } from '../../components/FileUpload'
 
@@ -32,7 +32,36 @@ describe('FileUpload', () => {
     })
 
     // --- 次イテレーション ---
-    it.todo('dragover イベントでドロップ受け入れ可能なビジュアルフィードバックが表示される')
-    it.todo('dragleave イベントでビジュアルフィードバックが解除される')
-    it.todo('エラー表示後に正しいCSVをドロップするとエラーメッセージが消える')
+    it('dragover イベントでドロップ受け入れ可能なビジュアルフィードバックが表示される', () => {
+        render(<FileUpload onFileSelect={vi.fn()} />)
+        const dropArea = screen.getByRole('region', { name: /drop/i })
+
+        fireEvent.dragOver(dropArea)
+
+        expect(dropArea).toHaveAttribute('data-dragging', 'true')
+    })
+
+    it('dragleave イベントでビジュアルフィードバックが解除される', () => {
+        render(<FileUpload onFileSelect={vi.fn()} />)
+        const dropArea = screen.getByRole('region', { name: /drop/i })
+
+        fireEvent.dragOver(dropArea)
+        fireEvent.dragLeave(dropArea)
+
+        expect(dropArea).not.toHaveAttribute('data-dragging', 'true')
+    })
+
+    it('エラー表示後に正しいCSVをドロップするとエラーメッセージが消える', async () => {
+        render(<FileUpload onFileSelect={vi.fn()} />)
+        const dropArea = screen.getByRole('region', { name: /drop/i })
+
+        const txtFile = new File(['hello'], 'hello.txt', { type: 'text/plain' })
+        await userEvent.upload(dropArea, txtFile)
+        expect(screen.getByRole('alert')).toBeInTheDocument()
+
+        const csvFile = new File(['name,age\nAlice,30'], 'data.csv', { type: 'text/csv' })
+        await userEvent.upload(dropArea, csvFile)
+
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
 })
