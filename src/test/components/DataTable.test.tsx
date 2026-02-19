@@ -77,12 +77,11 @@ describe('DataTable', () => {
                 onHeaderClick={vi.fn()}
             />,
         )
-        // ヘッダー行のみで、データ行は存在しない
+        // ヘッダー行(1) + フッター行(1) = 2
         const rows = screen.getAllByRole('row')
-        expect(rows).toHaveLength(1)
+        expect(rows).toHaveLength(2)
     })
 
-    // --- 次イテレーション ---
     it('ソートされていない列ヘッダーにはaria-sort属性がない', () => {
         const sortOrder: SortOrder = { column: 'name', direction: 'asc' }
         render(

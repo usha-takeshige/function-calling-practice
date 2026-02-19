@@ -2,10 +2,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { App } from '../../components/App'
+import { downloadCSV } from '../../infrastructure/fileIO'
+
+vi.mock('../../infrastructure/fileIO', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../../infrastructure/fileIO')>()
+    return {
+        ...actual,
+        downloadCSV: vi.fn(),
+    }
+})
 
 describe('App (Integration)', () => {
     beforeEach(() => {
-        // URL.createObjectURL をモック化
+        vi.clearAllMocks()
         globalThis.URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-url')
         globalThis.URL.revokeObjectURL = vi.fn()
     })
@@ -39,7 +48,6 @@ describe('App (Integration)', () => {
 
         await userEvent.type(screen.getByRole('searchbox'), 'alice')
 
-        // Alice行のみ表示、Bob行は非表示
         expect(screen.getByText('Alice')).toBeInTheDocument()
         expect(screen.queryByText('Bob')).not.toBeInTheDocument()
     })
@@ -72,10 +80,9 @@ describe('App (Integration)', () => {
         expect(exportButton).not.toBeDisabled()
         await userEvent.click(exportButton)
 
-        expect(URL.createObjectURL).toHaveBeenCalledOnce()
+        expect(downloadCSV).toHaveBeenCalled()
     })
 
-    // --- 次イテレーション ---
     it('列ヘッダークリックで昇順ソートされる', async () => {
         render(<App />)
         const dropArea = screen.getByRole('region', { name: /drop/i })
@@ -88,7 +95,6 @@ describe('App (Integration)', () => {
         await userEvent.click(screen.getByRole('columnheader', { name: 'name' }))
 
         const rows = screen.getAllByRole('row')
-        // 昇順: Alice → Bob
         expect(within(rows[1]).getByText('Alice')).toBeInTheDocument()
         expect(within(rows[2]).getByText('Bob')).toBeInTheDocument()
     })
@@ -102,13 +108,10 @@ describe('App (Integration)', () => {
         await userEvent.upload(dropArea, file)
         await screen.findByRole('table')
 
-        // 1回目: 昇順
         await userEvent.click(screen.getByRole('columnheader', { name: 'name' }))
-        // 2回目: 降順
         await userEvent.click(screen.getByRole('columnheader', { name: 'name' }))
 
         const rows = screen.getAllByRole('row')
-        // 降順: Bob → Alice
         expect(within(rows[1]).getByText('Bob')).toBeInTheDocument()
         expect(within(rows[2]).getByText('Alice')).toBeInTheDocument()
     })
@@ -116,7 +119,6 @@ describe('App (Integration)', () => {
     it('不正なCSVファイルをドロップするとエラーメッセージが表示される', async () => {
         render(<App />)
         const dropArea = screen.getByRole('region', { name: /drop/i })
-        // 列数が行によって不一致のCSV
         const file = new File(['name,age\nAlice,30,extra'], 'bad.csv', {
             type: 'text/csv',
         })
@@ -136,9 +138,7 @@ describe('App (Integration)', () => {
 
         await userEvent.click(screen.getByRole('button', { name: /export/i }))
 
-        // downloadCSV で生成されるアンカーの download 属性がファイル名と一致する
-        const link = document.querySelector('a[download="my_data.csv"]')
-        expect(link).not.toBeNull()
+        expect(downloadCSV).toHaveBeenCalledWith(expect.any(String), 'my_data.csv')
     })
 
     it('別のCSVをドロップすると前のデータが上書きされる', async () => {
@@ -148,12 +148,10 @@ describe('App (Integration)', () => {
         await userEvent.upload(dropArea, file1)
         await screen.findByRole('table')
 
-        // テーブル表示後もドロップエリアが残っている（or 別の手段で再アップロードできる）
         const dropAreaAfter = screen.getByRole('region', { name: /drop/i })
         const file2 = new File(['city\nTokyo'], 'file2.csv', { type: 'text/csv' })
         await userEvent.upload(dropAreaAfter, file2)
 
-        // 新しいデータのヘッダーが表示され、古いヘッダーは消える
         await screen.findByRole('columnheader', { name: 'city' })
         expect(screen.queryByRole('columnheader', { name: 'name' })).not.toBeInTheDocument()
     })

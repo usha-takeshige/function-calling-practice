@@ -22,7 +22,14 @@ export function DataTable({ dataset, sortOrder, onHeaderClick }: DataTableProps)
                         <th
                             key={header}
                             onClick={() => onHeaderClick(header)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    onHeaderClick(header)
+                                }
+                            }}
                             aria-sort={getAriaSort(header)}
+                            tabIndex={0}
+                            style={{ cursor: 'pointer' }}
                         >
                             {header}
                             {sortOrder?.column === header && (
@@ -43,6 +50,13 @@ export function DataTable({ dataset, sortOrder, onHeaderClick }: DataTableProps)
                     </tr>
                 ))}
             </tbody>
+            <tfoot>
+                <tr>
+                    <td colSpan={dataset.headers.length} role="contentinfo">
+                        {dataset.rows.length}
+                    </td>
+                </tr>
+            </tfoot>
         </table>
     )
 }

@@ -38,6 +38,18 @@ export function ControlPanel({
                 onChange={(e) => onFilterChange(e.target.value)}
             />
 
+            {/* 表示制御ボタン */}
+            <button
+                type="button"
+                onClick={() => {
+                    columns
+                        .filter((c) => !c.isVisible)
+                        .forEach((c) => onToggleColumn(c.name))
+                }}
+            >
+                全列を表示
+            </button>
+
             {/* エクスポートボタン */}
             <button onClick={onExport} disabled={isExportDisabled}>
                 Export

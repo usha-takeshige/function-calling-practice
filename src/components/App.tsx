@@ -16,23 +16,36 @@ export function App() {
         setFilter,
         toggleSort,
         toggleColumnVisibility,
+        sortOrder,
     } = useTableData()
 
-    // 元のヘッダー全列を保持（非表示列もチェックボックスに表示するため）
+    // 元のヘッダー全列を保持
     const [allHeaders, setAllHeaders] = useState<string[]>([])
+    const [fileName, setFileName] = useState<string>('export.csv')
+    const [error, setError] = useState<string | null>(null)
 
     const isLoaded = allHeaders.length > 0
 
     async function handleFileSelect(file: File) {
-        const text = await readTextFromFile(file)
-        const dataset = parse(text)
-        setAllHeaders(dataset.headers)
-        loadData(dataset)
+        try {
+            setError(null)
+            const text = await readTextFromFile(file)
+            const dataset = parse(text)
+            setAllHeaders(dataset.headers)
+            setFileName(file.name)
+            loadData(dataset)
+        } catch (e) {
+            if (e instanceof Error) {
+                setError(e.message)
+            } else {
+                setError('Unknown error occurred')
+            }
+        }
     }
 
     function handleExport() {
         const csvContent = stringify(processedDataset)
-        downloadCSV(csvContent, 'export.csv')
+        downloadCSV(csvContent, fileName)
     }
 
     // 各列の表示状態を processedDataset.headers から導出
@@ -43,9 +56,8 @@ export function App() {
 
     return (
         <div>
-            {!isLoaded && (
-                <FileUpload onFileSelect={handleFileSelect} />
-            )}
+            {error && <p role="alert">{error}</p>}
+            <FileUpload onFileSelect={handleFileSelect} />
             {isLoaded && (
                 <>
                     <ControlPanel
@@ -57,7 +69,7 @@ export function App() {
                     />
                     <DataTable
                         dataset={processedDataset}
-                        sortOrder={null}
+                        sortOrder={sortOrder}
                         onHeaderClick={toggleSort}
                     />
                 </>
