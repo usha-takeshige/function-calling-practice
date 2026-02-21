@@ -64,4 +64,9 @@ describe('FileUpload', () => {
 
         expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     })
+
+    // --- 次イテレーション ---
+    it.todo('ファイルを読み込み中はローディングインジケーターが表示される')
+    it.todo('エラーメッセージの右に「×」ボタンがあり、クリックするとエラーが消える')
+    it.todo('データ読み込み後はドロップエリアがコンパクト表示に切り替わる')
 })

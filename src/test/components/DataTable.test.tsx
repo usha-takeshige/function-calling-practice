@@ -127,4 +127,9 @@ describe('DataTable', () => {
         // tfoot または contentinfo ロールに行数が表示される
         expect(screen.getByRole('contentinfo')).toHaveTextContent('100')
     })
+
+    // --- 次イテレーション ---
+    it.todo('未ソート列のヘッダーにも並び替え可能であることを示すアイコンが薄く表示される')
+    it.todo('データが0件のときは「データがありません」というメッセージが表示される')
+    it.todo('100件を超えるとページネーションコントロールが表示される')
 })

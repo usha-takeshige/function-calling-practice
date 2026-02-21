@@ -139,4 +139,9 @@ describe('ControlPanel', () => {
 
         expect(screen.getByRole('checkbox', { name: 'city' })).not.toBeChecked()
     })
+
+    // --- 次イテレーション ---
+    it.todo('フィルタが設定されているとき「N件 / M件」のように一致件数を表示する')
+    it.todo('全列が表示中のときは「全列を表示」ボタンがdisabledになる')
+    it.todo('columnConfigが空配列のときはチェックボックスが描画されない')
 })

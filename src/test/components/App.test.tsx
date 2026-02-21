@@ -155,4 +155,11 @@ describe('App (Integration)', () => {
         await screen.findByRole('columnheader', { name: 'city' })
         expect(screen.queryByRole('columnheader', { name: 'name' })).not.toBeInTheDocument()
     })
+
+    // --- 次イテレーション ---
+    it.todo('エラーメッセージの×ボタンをクリックするとエラーが消えて再アップロード可能になる')
+    it.todo('ソート中に列ヘッダーを3回クリックするとソートがリセットされる')
+    it.todo('フィルタとソートを同時に適用すると両方が有効になる')
+    it.todo('実際のドラッグ＆ドロップでCSVをアップロードするとデータが表示される')
+    it.todo('全列を非表示にしてもControlPanelの「全列を表示」ボタンは표示されたまま(disabled)になる')
 })
