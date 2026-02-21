@@ -1,0 +1,50 @@
+# --- Dependencies ---
+# パッケージマネージャの依存関係
+node_modules/
+.pnp
+.pnp.js
+
+# --- Build Outputs ---
+# ビルド成果物（Vite, CRA, Next.jsなど）
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# --- Logs ---
+# デバッグやエラーログ
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# --- Environment Variables ---
+# 環境変数（秘密情報を含むため絶対にコミットしない）
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env.local
+
+# --- IDE / Editors ---
+# エディタ固有の設定
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# --- Testing ---
+# テストのレポートやカバレッジ
+coverage/
+__snapshots__/
+
+# --- Optional Tools ---
+# TypeScriptのキャッシュや、uv等のツールを使用する場合
+.cache/
+.eslintcache
+.stylelintcache
